@@ -1,0 +1,176 @@
+Atualize e reestruture completamente o FLUXO DE CANCELAMENTO do sistema "Controle da Operação" para nível empresarial, garantindo funcionamento real de ponta a ponta.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+OBJETIVO
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Criar um fluxo completo de cancelamento com:
+
+* busca automática de pedido
+* preenchimento automático de dados
+* envio de e-mail funcional via Gmail (nodemailer)
+* controle de status (PENDENTE, EM ANDAMENTO, RESOLVIDO)
+* histórico completo
+* interface funcional e integrada
+
+━━━━━━━━━━━━━━━━━━━━━━━
+BACKEND (OBRIGATÓRIO)
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Atualizar o arquivo:
+routes/cancellations.ts
+
+Implementar:
+
+1. CRIAR CANCELAMENTO
+
+* Receber:
+
+  * numeroPedido
+  * motivo
+  * passageiro
+
+* Buscar automaticamente o pedido na tabela orders
+
+* Preencher automaticamente:
+
+  * fornecedor
+  * produto
+
+* Criar registro na tabela cancellations com:
+
+  * pedidoId
+  * numeroPedido
+  * fornecedor
+  * produto
+  * passageiro
+  * motivo
+  * status = "PENDENTE"
+  * dataSolicitacao automática
+  * criadoPor (usuário logado)
+
+2. ENVIO DE E-MAIL (CRÍTICO)
+
+* Usar nodemailer com Gmail
+
+* Variáveis:
+
+  * EMAIL_USER
+  * EMAIL_PASS
+
+* Enviar automaticamente ao criar cancelamento
+
+* E-mail deve ser HTML e conter:
+
+  * número do pedido
+  * fornecedor
+  * produto
+  * passageiro
+  * motivo
+
+3. LISTAGEM
+
+* Criar endpoint GET /cancellations
+* Retornar todos os cancelamentos
+
+4. ATUALIZAÇÃO DE STATUS
+
+* Criar endpoint PUT /cancellations/:id/status
+
+* Permitir:
+
+  * EM ANDAMENTO
+  * RESOLVIDO
+
+* Quando status = RESOLVIDO:
+
+  * preencher dataResolucao automaticamente
+
+━━━━━━━━━━━━━━━━━━━━━━━
+BANCO DE DADOS
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Atualizar schema cancellations com:
+
+* id
+* pedidoId
+* numeroPedido
+* fornecedor
+* produto
+* passageiro
+* motivo
+* status (default "PENDENTE")
+* dataSolicitacao (default now)
+* dataResolucao
+* criadoPor
+
+Aplicar mudanças no banco.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+FRONTEND (OBRIGATÓRIO)
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Atualizar:
+pages/CancellationsPage.tsx
+
+Implementar:
+
+1. FORMULÁRIO
+
+Campos:
+
+* número do pedido
+* passageiro
+* motivo
+
+Botão:
+
+* "Solicitar Cancelamento"
+
+2. LISTAGEM
+
+Tabela com:
+
+* pedido
+* motivo
+* status
+* data
+* ações
+
+3. AÇÕES
+
+Botões:
+
+* "Em andamento"
+* "Resolver"
+
+Ao clicar:
+
+* atualizar status via API
+* recarregar lista
+
+━━━━━━━━━━━━━━━━━━━━━━━
+REGRAS IMPORTANTES
+━━━━━━━━━━━━━━━━━━━━━━━
+
+* Apenas usuários logados podem usar
+* Usar sessão (express-session)
+* Não simplificar lógica
+* Não remover funcionalidades existentes
+* Integrar com tabela orders existente
+
+━━━━━━━━━━━━━━━━━━━━━━━
+VALIDAÇÃO FINAL
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Após implementação, garantir:
+
+* criação funciona
+* e-mail é enviado
+* status atualiza corretamente
+* dados aparecem na tela
+* sistema sem erros
+
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Execute todas as alterações diretamente no sistema atual e garanta funcionamento completo.

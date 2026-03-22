@@ -1,0 +1,1068 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: Controle da Operação API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: users
+    description: User management
+  - name: orders
+    description: Order/pedido flow
+  - name: cancellations
+    description: Cancellation flow
+  - name: goals
+    description: Goals/emission flow
+  - name: csv
+    description: CSV import operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Login with email/username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Logout
+      responses:
+        "200":
+          description: Logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user
+      responses:
+        "200":
+          description: Current user info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserInfo"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      operationId: listUsers
+      tags: [users]
+      summary: List all users
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+    post:
+      operationId: createUser
+      tags: [users]
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      tags: [users]
+      summary: Get user by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    put:
+      operationId: updateUser
+      tags: [users]
+      summary: Update user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequest"
+      responses:
+        "200":
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+    delete:
+      operationId: deleteUser
+      tags: [users]
+      summary: Delete user
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: User deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /users/{id}/permissions:
+    put:
+      operationId: updateUserPermissions
+      tags: [users]
+      summary: Update user flow permissions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPermissionsRequest"
+      responses:
+        "200":
+          description: Permissions updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: List orders
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderListResponse"
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Order created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    put:
+      operationId: updateOrder
+      tags: [orders]
+      summary: Update order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateOrderRequest"
+      responses:
+        "200":
+          description: Order updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/import-csv:
+    post:
+      operationId: importOrdersCsv
+      tags: [orders]
+      summary: Import orders from CSV content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImportCsvRequest"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportCsvResponse"
+
+  /cancellations:
+    get:
+      operationId: listCancellations
+      tags: [cancellations]
+      summary: List cancellations
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of cancellations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CancellationListResponse"
+    post:
+      operationId: createCancellation
+      tags: [cancellations]
+      summary: Register a cancellation request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCancellationRequest"
+      responses:
+        "201":
+          description: Cancellation registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cancellation"
+
+  /cancellations/{id}:
+    get:
+      operationId: getCancellation
+      tags: [cancellations]
+      summary: Get cancellation by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cancellation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cancellation"
+    put:
+      operationId: updateCancellation
+      tags: [cancellations]
+      summary: Update cancellation status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCancellationRequest"
+      responses:
+        "200":
+          description: Cancellation updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Cancellation"
+
+  /cancellations/{id}/send-email:
+    post:
+      operationId: sendCancellationEmail
+      tags: [cancellations]
+      summary: Send cancellation request email
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Email sent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+
+  /goals:
+    get:
+      operationId: listGoals
+      tags: [goals]
+      summary: List goals/metas
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Goal"
+    post:
+      operationId: createGoal
+      tags: [goals]
+      summary: Create/set a goal for a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGoalRequest"
+      responses:
+        "201":
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Goal"
+
+  /goals/performance:
+    get:
+      operationId: getPerformance
+      tags: [goals]
+      summary: Get performance data (emissions vs goals)
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+        - name: dateFrom
+          in: query
+          schema:
+            type: string
+        - name: dateTo
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Performance data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PerformanceResponse"
+
+  /goals/summary:
+    get:
+      operationId: getGoalsSummary
+      tags: [goals]
+      summary: Get goals summary/dashboard stats
+      responses:
+        "200":
+          description: Summary stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoalsSummary"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+
+    LoginRequest:
+      type: object
+      properties:
+        login:
+          type: string
+          description: Email or username
+        password:
+          type: string
+      required:
+        - login
+        - password
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/UserInfo"
+        message:
+          type: string
+      required:
+        - user
+        - message
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+          enum: [master, admin, user]
+        permissions:
+          $ref: "#/components/schemas/UserPermissions"
+      required:
+        - id
+        - name
+        - email
+        - username
+        - role
+        - permissions
+
+    UserPermissions:
+      type: object
+      properties:
+        fluxoDados:
+          type: boolean
+        fluxoCancelamento:
+          type: boolean
+        fluxoEmissao:
+          type: boolean
+      required:
+        - fluxoDados
+        - fluxoCancelamento
+        - fluxoEmissao
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        role:
+          type: string
+          enum: [master, admin, user]
+        active:
+          type: boolean
+        permissions:
+          $ref: "#/components/schemas/UserPermissions"
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - email
+        - username
+        - role
+        - active
+        - permissions
+        - createdAt
+
+    CreateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [admin, user]
+        permissions:
+          $ref: "#/components/schemas/UserPermissions"
+      required:
+        - name
+        - email
+        - username
+        - password
+        - role
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum: [admin, user]
+        active:
+          type: boolean
+
+    UserPermissionsRequest:
+      type: object
+      properties:
+        fluxoDados:
+          type: boolean
+        fluxoCancelamento:
+          type: boolean
+        fluxoEmissao:
+          type: boolean
+      required:
+        - fluxoDados
+        - fluxoCancelamento
+        - fluxoEmissao
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        supplier:
+          type: string
+        product:
+          type: string
+        startDate:
+          type: string
+        booking:
+          type: string
+        emissionCost:
+          type: number
+        paxTotal:
+          type: integer
+        agency:
+          type: string
+        issuedBy:
+          type: string
+        status:
+          type: string
+        deliveryStatus:
+          type: string
+        notes:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - orderNumber
+        - supplier
+        - product
+        - status
+        - deliveryStatus
+        - createdAt
+
+    CreateOrderRequest:
+      type: object
+      properties:
+        orderNumber:
+          type: string
+        supplier:
+          type: string
+        product:
+          type: string
+        startDate:
+          type: string
+        booking:
+          type: string
+        emissionCost:
+          type: number
+        paxTotal:
+          type: integer
+        agency:
+          type: string
+        issuedBy:
+          type: string
+        notes:
+          type: string
+      required:
+        - orderNumber
+        - supplier
+        - product
+
+    UpdateOrderRequest:
+      type: object
+      properties:
+        supplier:
+          type: string
+        product:
+          type: string
+        startDate:
+          type: string
+        booking:
+          type: string
+        emissionCost:
+          type: number
+        paxTotal:
+          type: integer
+        agency:
+          type: string
+        issuedBy:
+          type: string
+        status:
+          type: string
+        deliveryStatus:
+          type: string
+        notes:
+          type: string
+
+    OrderListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+      required:
+        - data
+        - total
+        - page
+        - pageSize
+
+    ImportCsvRequest:
+      type: object
+      properties:
+        csvContent:
+          type: string
+        separator:
+          type: string
+      required:
+        - csvContent
+
+    ImportCsvResponse:
+      type: object
+      properties:
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string
+        message:
+          type: string
+      required:
+        - imported
+        - skipped
+        - errors
+        - message
+
+    Cancellation:
+      type: object
+      properties:
+        id:
+          type: integer
+        orderNumber:
+          type: string
+        supplier:
+          type: string
+        product:
+          type: string
+        booking:
+          type: string
+        value:
+          type: number
+        useDate:
+          type: string
+        pax:
+          type: integer
+        reason:
+          type: string
+        status:
+          type: string
+        createdBy:
+          type: string
+        sendDate:
+          type: string
+        solutionDate:
+          type: string
+        daysPending:
+          type: integer
+        emailSent:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - orderNumber
+        - reason
+        - status
+        - createdBy
+        - emailSent
+        - createdAt
+
+    CreateCancellationRequest:
+      type: object
+      properties:
+        orderNumber:
+          type: string
+        supplier:
+          type: string
+        product:
+          type: string
+        booking:
+          type: string
+        value:
+          type: number
+        useDate:
+          type: string
+        pax:
+          type: integer
+        reason:
+          type: string
+        notes:
+          type: string
+      required:
+        - orderNumber
+        - reason
+
+    UpdateCancellationRequest:
+      type: object
+      properties:
+        status:
+          type: string
+        reason:
+          type: string
+        pax:
+          type: integer
+        solutionDate:
+          type: string
+        notes:
+          type: string
+
+    CancellationListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Cancellation"
+        total:
+          type: integer
+        page:
+          type: integer
+        pageSize:
+          type: integer
+        stats:
+          $ref: "#/components/schemas/CancellationStats"
+      required:
+        - data
+        - total
+        - page
+        - pageSize
+
+    CancellationStats:
+      type: object
+      properties:
+        pending:
+          type: integer
+        resolved:
+          type: integer
+        emissionError:
+          type: integer
+        checkError:
+          type: integer
+      required:
+        - pending
+        - resolved
+        - emissionError
+        - checkError
+
+    Goal:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        userName:
+          type: string
+        userEmail:
+          type: string
+        date:
+          type: string
+        target:
+          type: integer
+        achieved:
+          type: integer
+        percentage:
+          type: number
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - userName
+        - userEmail
+        - date
+        - target
+        - createdAt
+
+    CreateGoalRequest:
+      type: object
+      properties:
+        userId:
+          type: integer
+        date:
+          type: string
+        target:
+          type: integer
+        achieved:
+          type: integer
+      required:
+        - userId
+        - date
+        - target
+
+    PerformanceResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerformanceEntry"
+        totalTarget:
+          type: integer
+        totalAchieved:
+          type: integer
+        overallPercentage:
+          type: number
+      required:
+        - data
+        - totalTarget
+        - totalAchieved
+        - overallPercentage
+
+    PerformanceEntry:
+      type: object
+      properties:
+        date:
+          type: string
+        userName:
+          type: string
+        target:
+          type: integer
+        achieved:
+          type: integer
+        percentage:
+          type: number
+      required:
+        - date
+        - userName
+        - target
+        - achieved
+        - percentage
+
+    GoalsSummary:
+      type: object
+      properties:
+        todayTarget:
+          type: integer
+        todayAchieved:
+          type: integer
+        monthTarget:
+          type: integer
+        monthAchieved:
+          type: integer
+        topPerformers:
+          type: array
+          items:
+            $ref: "#/components/schemas/TopPerformer"
+      required:
+        - todayTarget
+        - todayAchieved
+        - monthTarget
+        - monthAchieved
+        - topPerformers
+
+    TopPerformer:
+      type: object
+      properties:
+        userName:
+          type: string
+        achieved:
+          type: integer
+        percentage:
+          type: number
+      required:
+        - userName
+        - achieved
+        - percentage

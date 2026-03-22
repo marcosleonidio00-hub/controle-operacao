@@ -1,0 +1,163 @@
+Atualize completamente o fluxo de cancelamento do sistema "Controle da Operação" para corrigir os campos enviados para a API externa e alinhar 100% com a lógica da planilha.
+
+━━━━━━━━━━━━━━━━━━━━━━━
+OBJETIVO
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Corrigir os seguintes problemas:
+
+* Nome do passageiro (nomePax) está vindo undefined
+* Motivo do cancelamento está vindo undefined
+* Data está em formato incorreto
+* Payload incompleto para geração do e-mail
+
+━━━━━━━━━━━━━━━━━━━━━━━
+FRONTEND — ALTERAÇÕES
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Arquivo:
+artifacts/controle-operacao/src/pages/CancellationsPage.tsx
+
+1. Criar estado:
+
+const [nomePax, setNomePax] = useState("");
+const [motivoCancelamento, setMotivoCancelamento] = useState("");
+
+2. Adicionar campo de Pax:
+
+<input
+type="text"
+value={nomePax}
+onChange={(e) => setNomePax(e.target.value)}
+placeholder="Nome do passageiro"
+/>
+
+3. Substituir campo de motivo por SELECT:
+
+<select
+value={motivoCancelamento}
+onChange={(e) => setMotivoCancelamento(e.target.value)}
+
+>
+
+  <option value="">Selecione o motivo</option>
+  {[
+    "Suspeita de fraude",
+    "Agência não aceitou o Fun/Volcano",
+    "Agência não aceitou o Promo",
+    "Atração cancelada",
+    "Cancelado pelo cliente",
+    "Cancelamento Fun",
+    "Chargeback",
+    "Duplicidade / Comercial",
+    "Duplicidade / Fornecedor",
+    "Duplicidade / Tecnologia",
+    "Duplicidade / Emissão",
+    "Duplicidade / Oparks",
+    "Duplicidade / Pos",
+    "Duplicidade / Wl",
+    "Erro Cliente",
+    "Erro Comercial",
+    "Erro da Agência",
+    "Erro na V2",
+    "Erro Na Wl",
+    "Erro de emissão",
+    "Erro de integração",
+    "Erro de produtos",
+    "Erro do Cliente",
+    "Erro do Comercial",
+    "Erro do Fornecedor",
+    "Erro do Pós",
+    "Erro na Conferência",
+    "Erro na Fatura do Fornecedor",
+    "Erro no Backoffice",
+    "Erro Operacional",
+    "Erro Wl",
+    "Ganho na Tarifa",
+    "Inconsistência do Line",
+    "Prevenção de Prejuízo",
+    "Redução de Prejuizo",
+    "Troca de Fornecedor",
+    "Troca para o Fun",
+    "Upgrade",
+    "Prevenção de prejuízo",
+    "Erro / produtos",
+    "Erro de precificação",
+    "Outro"
+  ].map((m) => (
+    <option key={m} value={m}>{m}</option>
+  ))}
+</select>
+
+4. Ajustar envio:
+
+fetch("/cancellations", {
+method: "POST",
+headers: { "Content-Type": "application/json" },
+body: JSON.stringify({
+numeroPedido,
+nomePax,
+motivoCancelamento
+})
+});
+
+━━━━━━━━━━━━━━━━━━━━━━━
+BACKEND — ALTERAÇÕES
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Arquivo:
+artifacts/api-server/src/routes/cancellations.ts
+
+1. Garantir leitura correta:
+
+const { numeroPedido, nomePax, motivoCancelamento } = req.body;
+
+2. Buscar pedido no banco:
+
+const result = await pool.query(
+"SELECT * FROM orders WHERE numero_pedido=$1",
+[numeroPedido]
+);
+
+const pedido = result.rows[0];
+
+3. Montar payload COMPLETO:
+
+const payload = {
+numeroPedido: pedido.numero_pedido,
+fornecedor: pedido.fornecedor,
+atracao: pedido.produto,
+booking: pedido.booking,
+valor: pedido.valor,
+dataUso: pedido.data_uso,
+nomePax: nomePax,
+motivoCancelamento: motivoCancelamento,
+criadoPor: pedido.criado_por,
+assinaturaNome: "Marcos Leonidio",
+assinaturaCargo: "Supervisor de Emissão",
+idsAnexo: []
+};
+
+4. Enviar para API externa:
+
+await fetch("https://script.google.com/macros/s/AKfycbyd9wanlk9CZLjNyKsxIWQujPUiUX3eOuPYpLK4VSiMyH3u4awR6rgfa2ckFIpJMvJq/exec", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify(payload)
+});
+
+━━━━━━━━━━━━━━━━━━━━━━━
+RESULTADO ESPERADO
+━━━━━━━━━━━━━━━━━━━━━━━
+
+Após atualização:
+
+* Nome do passageiro aparece no e-mail
+* Motivo correto aparece no e-mail
+* Dados completos enviados
+* E-mail igual ao da planilha original
+* Fluxo funcionando 100%
+
+Execute todas as alterações automaticamente no projeto.

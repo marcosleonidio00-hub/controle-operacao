@@ -1,0 +1,134 @@
+// ================================
+// CONFIGURAÇÕES
+// ================================
+const ID_PLANILHA = "1nOd3TkyDSpEMn317MMX-GD9haV6mhgQmEHc7olPmJD0";
+const ID_CSV = "1Q9ZtSjA4H2LA5rpJYL__1pnkjph_z07G";
+const NOME_ABA = "Página1";
+
+
+// ================================
+// FUNÇÃO LIMPEZA
+// ================================
+function limparTexto(valor) {
+
+  if (valor === null || valor === undefined) return "";
+
+  return String(valor)
+    .replace(/^"|"$/g, "")
+    .replace(/\u0000/g, "")
+    .replace(/\u00A0/g, " ")
+    .replace(/[\r\n\t]+/g, "")
+    .trim();
+}
+
+
+// ================================
+// FUNÇÃO PRINCIPAL
+// ================================
+function importarCSVAutomatico() {
+
+  const lock = LockService.getScriptLock();
+
+  if (!lock.tryLock(30000)) {
+    Logger.log("Execução já em andamento.");
+    return;
+  }
+
+  try {
+
+    const ss = SpreadsheetApp.openById(ID_PLANILHA);
+    const aba = ss.getSheetByName(NOME_ABA);
+
+    if (!aba) throw new Error("Aba não encontrada.");
+
+    aba.getRange("Z1").setValue("PROCESSANDO");
+
+    const arquivo = DriveApp.getFileById(ID_CSV);
+
+    // ===============================
+    // VERIFICA SE O ARQUIVO PAROU
+    // ===============================
+
+    const tamanho1 = arquivo.getSize();
+
+    Utilities.sleep(3000);
+
+    const tamanho2 = arquivo.getSize();
+
+    if (tamanho1 !== tamanho2) {
+      Logger.log("CSV ainda está sendo atualizado.");
+      return;
+    }
+
+    // ===============================
+    // LÊ CSV
+    // ===============================
+
+    const conteudo = arquivo.getBlob().getDataAsString("UTF-8");
+
+    let linhas = conteudo
+      .replace(/\r/g, "")
+      .split("\n")
+      .filter(l => l.trim() !== "");
+
+    if (linhas.length === 0) {
+      throw new Error("CSV vazio.");
+    }
+
+    Logger.log("Total de linhas no CSV: " + linhas.length);
+
+    // ===============================
+    // LIMPA PLANILHA
+    // ===============================
+
+    aba.clearContents();
+
+    const TAMANHO_BLOCO = 4000;
+
+    let linhaAtual = 1;
+    let totalImportado = 0;
+
+    for (let i = 0; i < linhas.length; i += TAMANHO_BLOCO) {
+
+      const blocoLinhas = linhas.slice(i, i + TAMANHO_BLOCO);
+
+      const bloco = blocoLinhas.map(l =>
+        l.split(";").map(c => limparTexto(c))
+      );
+
+      const maxColunas = Math.max(...bloco.map(l => l.length));
+
+      const blocoNormalizado = bloco.map(l => {
+        return [...l, ...Array(maxColunas - l.length).fill("")];
+      });
+
+      aba
+        .getRange(linhaAtual, 1, blocoNormalizado.length, maxColunas)
+        .setValues(blocoNormalizado);
+
+      linhaAtual += blocoNormalizado.length;
+      totalImportado += blocoNormalizado.length;
+
+      Logger.log("Bloco importado até linha: " + totalImportado);
+    }
+
+    aba.getRange("Z1").setValue("CONCLUIDO");
+
+    Logger.log("Total de linhas importadas: " + totalImportado);
+    Logger.log("Importação finalizada com sucesso.");
+
+  }
+
+  catch (e) {
+
+    Logger.log("Erro: " + e.message);
+
+  }
+
+  finally {
+
+    lock.releaseLock();
+
+  }
+
+}

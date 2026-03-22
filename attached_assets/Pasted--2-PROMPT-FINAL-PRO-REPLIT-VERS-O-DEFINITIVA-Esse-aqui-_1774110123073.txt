@@ -1,0 +1,136 @@
+⚙️ 2. PROMPT FINAL PRO REPLIT (VERSÃO DEFINITIVA)
+
+Esse aqui é o que você cola lá 👇
+
+🚀 PROMPT FINAL — SISTEMA COMPLETO
+
+Atualize o sistema "Controle da Operação" para finalizar o fluxo de cancelamento com integração completa via API (Google Apps Script), incluindo anexos, validações, log e estrutura escalável.
+
+🎯 OBJETIVO
+
+O fluxo deve:
+
+Buscar pedido no banco
+Preencher automaticamente dados
+Permitir input manual de PAX
+Selecionar motivo (lista completa)
+Permitir envio de voucher (Drive)
+Enviar payload completo para API
+Registrar no banco
+Garantir confiabilidade
+🖥️ FRONTEND
+
+Adicionar:
+
+const [nomePax, setNomePax] = useState("");
+const [motivoCancelamento, setMotivoCancelamento] = useState("");
+const [voucherLink, setVoucherLink] = useState("");
+⚙️ BACKEND — REGRAS IMPORTANTES
+🔥 VALIDAÇÕES
+Pax obrigatório
+Motivo obrigatório
+HIGHSTAR exige voucher
+🔥 PAYLOAD FINAL (OBRIGATÓRIO)
+const payload = {
+  numeroPedido: pedido.numero_pedido,
+  fornecedor: pedido.fornecedor,
+  atracao: pedido.produto,
+  booking: pedido.booking,
+  valor: pedido.valor,
+  dataUso: pedido.data_uso,
+  nomePax,
+  motivoCancelamento,
+  criadoPor: pedido.criado_por,
+  assinaturaNome: "Marcos Leonidio",
+  assinaturaCargo: "Supervisor de Emissão",
+  idsAnexo: anexos
+};
+🚀 ENVIO
+await fetch("SUA_API_GOOGLE", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+💾 BANCO
+
+Salvar cancelamento com:
+
+pedido_id
+pax
+motivo
+voucher_link
+enviado_email = true
+🚀 3. MELHORIAS NÍVEL EMPRESA (AGORA SIM FODA)
+
+Agora vem o que te diferencia de qualquer operação 👇
+
+🔁 RETRY AUTOMÁTICO
+
+Se API falhar:
+
+try {
+  await fetch(...)
+} catch {
+  await pool.query(
+    "UPDATE cancellations SET enviado_email=false WHERE id=$1",
+    [id]
+  );
+}
+
+👉 Depois você cria um cron pra reenviar
+
+📊 PAINEL DE CANCELAMENTO
+
+Você já tem base pra fazer igual seu:
+
+👉 Painel Registro V6 Turbo+
+
+Com:
+
+status (PENDENTE / RESOLVIDO)
+filtro por data
+filtro por usuário
+destaque vermelho atraso
+⏱️ SLA AUTOMÁTICO
+
+Calcular atraso:
+
+DATEDIFF(now(), data_envio)
+
+👉 mostrar:
+
+🟢 até 1 dia
+🟡 2 dias
+🔴 3+ dias
+🧠 INTEGRAÇÃO COM RANKING
+
+Cada cancelamento vira:
+
+erro operacional
+impacto em meta
+ranking de usuário
+🧨 RESUMO FINAL (O QUE VOCÊ TEM AGORA)
+
+Você acabou de montar:
+
+✔ Sistema + Planilha integrados
+✔ API própria
+✔ Envio automático de e-mail
+✔ Controle de cancelamento
+✔ Log estruturado
+✔ Base para BI
+
+🚀 PRÓXIMO PASSO REAL
+
+Se quiser subir de nível absurdo agora:
+
+👉 fala: “quero painel de cancelamento nível turbo”
+
+E eu te entrego:
+
+UI igual seu painel V6
+cores por SLA
+edição inline
+filtros avançados
+botão resolver
+gráfico de cancelamentos

@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "L8RlGpr9UA8pZJTqDVSbj"
+uri = "file://SISTEMA.md"
+type = "text"
+title = "Guia de Referência do Sistema"

@@ -1,0 +1,124 @@
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+
+    // 🔥 FORMATA DATA
+    const dataFormatada = Utilities.formatDate(
+      new Date(data.dataUso),
+      Session.getScriptTimeZone(),
+      "dd/MM/yyyy"
+    );
+
+    // 🔥 REGRA DE ANEXO (HIGHSTAR)
+    let anexos = [];
+
+    if (data.idsAnexo && data.idsAnexo.length > 0) {
+      data.idsAnexo.forEach(linkOuId => {
+        try {
+          let id = linkOuId.match(/[-\w]{25,}/);
+          id = id ? id[0] : linkOuId;
+
+          let arquivo = DriveApp.getFileById(id);
+          anexos.push(arquivo.getAs(MimeType.PDF));
+        } catch (e) {
+          Logger.log("Erro anexo: " + e.message);
+        }
+      });
+    }
+
+    // 🔥 MONTA OBJETO FINAL
+    const payload = {
+      numeroPedido: data.numeroPedido,
+      fornecedor: data.fornecedor,
+      atracao: data.atracao,
+      booking: data.booking,
+      valor: data.valor,
+      dataUso: dataFormatada,
+      nomePax: data.nomePax,
+      motivoCancelamento: data.motivoCancelamento,
+      criadoPor: data.criadoPor,
+      assinaturaNome: data.assinaturaNome,
+      assinaturaCargo: data.assinaturaCargo,
+      anexos: anexos
+    };
+
+    // 🚀 ENVIA EMAIL
+    enviarEmailsMultiplo([payload]);
+
+    // 🧾 REGISTRA NA PLANILHA (PAINEL)
+    registrarNoPainel(payload);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "ok" }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        status: "erro",
+        msg: err.message
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+////////////////////////////////////////
+function registrarNoPainel(p) {
+  const ss = SpreadsheetApp.openById("1wtFdF0OtgWn7A9uPe1pK5l4rh5cCoBbEuCkdJJubkOM");
+  const aba = ss.getSheetByName("PAINEL DE CANCELAMENTO");
+
+  aba.appendRow([
+    p.numeroPedido,
+    p.fornecedor,
+    p.atracao,
+    p.booking,
+    p.valor,
+    p.dataUso,
+    p.nomePax,
+    p.motivoCancelamento,
+    p.criadoPor,
+    Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd/MM/yyyy"),
+    "PENDENTE CANCELAMENTO",
+    "",
+    "",
+    "",
+    p.assinaturaNome
+  ]);
+}
+
+//////////////////////////////////////////
+function buscarPedidoAPI(numeroPedido) {
+  const ss = SpreadsheetApp.openById("1wtFdF0OtgWn7A9uPe1pK5l4rh5cCoBbEuCkdJJubkOM");
+  const aba = ss.getSheetByName("LIST");
+
+  const dados = aba.getDataRange().getValues();
+  const cab = dados[0];
+
+  const idx = (nome) => cab.indexOf(nome);
+
+  for (let i = 1; i < dados.length; i++) {
+    if (String(dados[i][idx("numero_do_pedido")]) === String(numeroPedido)) {
+      return {
+        numeroPedido: dados[i][idx("numero_do_pedido")],
+        fornecedor: dados[i][idx("fornecedor")],
+        atracao: dados[i][idx("produto")],
+        booking: dados[i][idx("loc_booking")],
+        valor: dados[i][idx("custo_emissao")],
+        dataUso: dados[i][idx("data_inicio")],
+        criadoPor: dados[i][idx("emitido_por")]
+      };
+    }
+  }
+
+  return null;
+}
+//////////////////////////
+function buscarVoucherPorBooking(booking) {
+  const pasta = DriveApp.getFolderById("1cTLb2llw5xzr1NgUvXjDea1IjQ3yOnME");
+  const arquivos = pasta.getFilesByName(booking + ".pdf");
+
+  if (arquivos.hasNext()) {
+    return arquivos.next();
+  }
+
+  return null;
+}

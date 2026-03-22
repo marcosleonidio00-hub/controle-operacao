@@ -1,0 +1,13 @@
+packages:
+  "framer-motion": "For premium page transitions and micro-interactions"
+  "recharts": "For performance and goals charts in the dashboard and emission flow"
+  "date-fns": "For formatting dates cleanly across tables and charts"
+  "clsx": "For merging tailwind classes safely"
+  "tailwind-merge": "For merging tailwind classes safely"
+  "@hookform/resolvers": "For zod validation in complex forms"
+  "react-hook-form": "For robust form state management"
+
+images:
+  - path: "artifacts/controle-operacao/public/images/login-bg.png"
+    description: "Abstract 3D geometric shapes in deep navy blue and vibrant blue tones, dark professional corporate theme, glossy glassmorphism elements, subtle glowing lights, high-end 8k render"
+    aspect_ratio: "16:9"
