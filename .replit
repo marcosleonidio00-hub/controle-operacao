@@ -1,5 +1,8 @@
 modules = ["nodejs-24", "postgresql-16"]
 
+[run]
+command = "node artifacts/api-server/dist/index.js"
+
 [[artifacts]]
 id = "artifacts/api-server"
 
@@ -10,20 +13,12 @@ id = "artifacts/mockup-sandbox"
 router = "application"
 deploymentTarget = "autoscale"
 
-[deployment.postBuild]
-args = ["pnpm", "store", "prune"]
-env = { "CI" = "true" }
-
 [workflows]
 runButton = "Project"
 
 [agent]
 stack = "PNPM_WORKSPACE"
-expertMode = true
 
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 20000
-
-[nix]
-channel = "stable-25_05"
+[userenv.shared]
+# Esse link deve ser o seu link do Replit para a lixeira funcionar
+VITE_API_URL = "https://operation-control-hub--marcosautomacoe.replit.app/api"
