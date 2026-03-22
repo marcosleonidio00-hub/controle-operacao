@@ -62,3 +62,7 @@ app.get("*", (req, res) => {
     }
   }
 });
+// ... (seu código atual de fallback/SPA)
+
+// ADICIONE ESTA LINHA NO FINAL:
+export { app };

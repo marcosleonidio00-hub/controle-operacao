@@ -1,3 +1,4 @@
+// No topo do index.ts:
 import { app } from "./app.js";
 import { logger } from "./lib/logger.js";
       import { pool } from "@workspace/db";
