@@ -28,27 +28,36 @@ app.use(session({
   cookie: { secure: false, httpOnly: true, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// 1. Roteamento da API (mantenha como está)
+import fs from 'fs'; // Adicione este import no topo
+
+// ... restante do seu código (sessão, api, etc) ...
+
 app.use("/api", routes);
 
-// 2. Servir arquivos estáticos do Frontend
-// Usamos process.cwd() para garantir que pegamos a raiz do workspace no Render
+// 1. Caminho absoluto partindo da raiz do Render
 const frontendPath = path.join(process.cwd(), "artifacts/controle-operacao/dist/public");
+const indexPath = path.join(frontendPath, "index.html");
 
-// Log para você conferir no painel do Render se o caminho está certo
-console.log("📂 Tentando servir frontend de:", frontendPath);
+// 2. LOGS DE DEBUG (Isso vai aparecer no painel do Render)
+console.log("-----------------------------------------");
+console.log("📂 Root Directory (cwd):", process.cwd());
+console.log("📂 Target Frontend Path:", frontendPath);
+console.log("❓ Folder exists?", fs.existsSync(frontendPath));
+if (fs.existsSync(frontendPath)) {
+  console.log("📄 Files in folder:", fs.readdirSync(frontendPath));
+  console.log("❓ index.html exists?", fs.existsSync(indexPath));
+}
+console.log("-----------------------------------------");
 
+// 3. Servir arquivos e fallback
 app.use(express.static(frontendPath));
 
-// 3. Fallback para o SPA
 app.get("*", (req, res) => {
-  // Se não for uma rota de API e não for um arquivo (ex: .js, .css), manda o index.html
   if (!req.path.startsWith("/api")) {
-    res.sendFile(path.join(frontendPath, "index.html"), (err) => {
-      if (err) {
-        console.error("❌ Erro ao enviar index.html:", err);
-        res.status(404).send("Frontend não encontrado no servidor.");
-      }
-    });
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      res.status(404).send(`Erro: index.html não encontrado em ${indexPath}`);
+    }
   }
 });
