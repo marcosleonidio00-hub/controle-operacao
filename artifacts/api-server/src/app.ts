@@ -32,34 +32,33 @@ import fs from 'fs'; // Adicione este import no topo
 
 // ... restante do seu código (sessão, api, etc) ...
 
+// 1. Roteamento da API (Mantenha como está)
 app.use("/api", routes);
 
-// 1. Caminho absoluto partindo da raiz do Render
-const frontendPath = path.join(process.cwd(), "artifacts/controle-operacao/dist/public");
-const indexPath = path.join(frontendPath, "index.html");
+// 2. Localizador de Frontend "Inteligente"
+const possiblePaths = [
+  path.join(process.cwd(), "artifacts/controle-operacao/dist/public"),
+  path.join(process.cwd(), "dist/public"),
+  path.join(__dirname, "../../controle-operacao/dist/public")
+];
 
-// 2. LOGS DE DEBUG (Isso vai aparecer no painel do Render)
+// Tenta encontrar qual dessas pastas realmente tem o index.html
+const frontendPath = possiblePaths.find(p => fs.existsSync(path.join(p, "index.html"))) || possiblePaths[0];
+
 console.log("-----------------------------------------");
-console.log("📂 Root Directory (cwd):", process.cwd());
-console.log("📂 Target Frontend Path:", frontendPath);
-console.log("❓ Folder exists?", fs.existsSync(frontendPath));
-if (fs.existsSync(frontendPath)) {
-  console.log("📄 Files in folder:", fs.readdirSync(frontendPath));
-  console.log("❓ index.html exists?", fs.existsSync(indexPath));
-}
+console.log("🚀 Servidor detectou Frontend em:", frontendPath);
 console.log("-----------------------------------------");
 
-// 3. Servir arquivos e fallback
 app.use(express.static(frontendPath));
 
+// 3. Fallback para Single Page Application (SPA)
 app.get("*", (req, res) => {
   if (!req.path.startsWith("/api")) {
+    const indexPath = path.join(frontendPath, "index.html");
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
-      res.status(404).send(`Erro: index.html não encontrado em ${indexPath}`);
+      res.status(404).send(`<h1>Erro de Deploy</h1><p>Pasta frontend não encontrada. Verifique se o build do Vite rodou com sucesso.</p>`);
     }
   }
 });
-// No final do arquivo app.ts
-export { app };
