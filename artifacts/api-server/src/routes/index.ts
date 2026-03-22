@@ -1,18 +1,18 @@
 import { Router } from "express";
-import authRoutes from "./auth";
-import usersRoutes from "./users";
-import ordersRoutes from "./orders";
-import cancellationsRoutes from "./cancellations";
-import goalsRoutes from "./goals";
-import healthRoutes from "./health";
+import authRouter from "./auth.js";
+import usersRouter from "./users.js";
+import ordersRouter from "./orders.js";
+import cancellationsRouter from "./cancellations.js";
+import goalsRouter from "./goals.js";
+import healthRouter from "./health.js";
 
 const router = Router();
 
-router.use("/auth", authRoutes);
-router.use("/users", usersRoutes);
-router.use("/orders", ordersRoutes);
-router.use("/cancellations", cancellationsRoutes);
-router.use("/goals", goalsRoutes);
-router.use("/health", healthRoutes);
+router.use("/auth", authRouter);
+router.use("/users", usersRouter);
+router.use("/orders", ordersRouter);
+router.use("/cancellations", cancellationsRouter);
+router.use("/goals", goalsRouter);
+router.use("/health", healthRouter);
 
 export default router;

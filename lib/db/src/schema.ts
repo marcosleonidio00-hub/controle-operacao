@@ -1,5 +1,3 @@
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
 import {
   pgTable,
   serial,
@@ -14,20 +12,15 @@ import {
 ========================= */
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
-
   name: text("name").notNull(),
   email: text("email").notNull(),
   username: text("username").notNull(),
-
   passwordHash: text("password_hash").notNull(),
-
   role: text("role").notNull().default("user"),
   active: boolean("active").notNull().default(true),
-
   permFluxoDados: boolean("perm_fluxo_dados").default(false),
   permFluxoCancelamento: boolean("perm_fluxo_cancelamento").default(false),
   permFluxoEmissao: boolean("perm_fluxo_emissao").default(false),
-
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -36,17 +29,12 @@ export const usersTable = pgTable("users", {
 ========================= */
 export const ordersTable = pgTable("orders", {
   id: serial("id").primaryKey(),
-
   orderNumber: text("order_number").notNull(),
   bookingNumber: text("booking_number"),
-
   customerName: text("customer_name"),
   supplier: text("supplier"),
-
   status: text("status"),
-
   amount: integer("amount"),
-
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -55,15 +43,17 @@ export const ordersTable = pgTable("orders", {
 ========================= */
 export const cancellationsTable = pgTable("cancellations", {
   id: serial("id").primaryKey(),
-
-  orderId: integer("order_id"),
-  userId: integer("user_id"),
-
+  orderNumber: text("order_number").notNull(), // Adicionado para bater com seu formulário
+  passenger: text("passenger"),               // Adicionado
+  supplier: text("supplier"),                 // Adicionado para o resumo da tabela
+  product: text("product"),                   // Adicionado
   reason: text("reason"),
-  status: text("status"),
-
-  refundAmount: integer("refund_amount"),
-
+  status: text("status").default("PENDENTE"),
+  createdBy: text("created_by"),              // Adicionado
+  assinaturaNome: text("assinatura_nome"),    // Adicionado
+  assinaturaCargo: text("assinatura_cargo"),  // Adicionado
+  emailSent: boolean("email_sent").default(false),
+  solutionDate: timestamp("solution_date"),    // Adicionado para o "Resolver"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -72,23 +62,10 @@ export const cancellationsTable = pgTable("cancellations", {
 ========================= */
 export const goalsTable = pgTable("goals", {
   id: serial("id").primaryKey(),
-
   userId: integer("user_id"),
-
   month: integer("month"),
   year: integer("year"),
-
   targetAmount: integer("target_amount"),
   achievedAmount: integer("achieved_amount"),
-
   createdAt: timestamp("created_at").defaultNow(),
 });
-
-/* =========================
-   INSTÂNCIA DO DB
-========================= */
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // configure sua URL do Postgres
-});
-
-export const db = drizzle(pool);

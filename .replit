@@ -3,22 +3,21 @@ modules = ["nodejs-24", "postgresql-16"]
 [run]
 command = "node artifacts/api-server/dist/index.js"
 
-[[artifacts]]
-id = "artifacts/api-server"
-
-[[artifacts]]
-id = "artifacts/mockup-sandbox"
-
 [deployment]
-router = "application"
-deploymentTarget = "autoscale"
+run = "node artifacts/api-server/dist/index.js"
 
-[workflows]
-runButton = "Project"
+[[ports]]
+localPort = 3000
+externalPort = 80
 
-[agent]
-stack = "PNPM_WORKSPACE"
+[[ports]]
+localPort = 8080
+externalPort = 8080
 
-[userenv.shared]
-# Esse link deve ser o seu link do Replit para a lixeira funcionar
-VITE_API_URL = "https://operation-control-hub--marcosautomacoe.replit.app/api"
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 21384
+externalPort = 3000

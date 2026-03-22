@@ -1,10 +1,21 @@
 import { useState } from "react";
 import Layout from "@/components/layout";
 import { useListCancellations, useSendCancellationEmail } from "@workspace/api-client-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { XCircle, Search, Mail, Plus, CheckCircle, Clock, AlertCircle, Loader2 } from "lucide-react";
+import { 
+  XCircle, 
+  Search, 
+  Mail, 
+  Plus, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle, 
+  Loader2, 
+  Trash2, 
+  Undo2 
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { formatDate } from "@/lib/utils";
 import {
@@ -60,7 +71,13 @@ function statusBadge(status: string) {
   if (status === "EM ANDAMENTO")
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-        <Loader2 className="w-3 h-3" /> Em Andamento
+        <Loader2 className="w-3 h-3 animate-spin" /> Em Andamento
+      </span>
+    );
+  if (status === "DESCONSIDERADO")
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">
+        <Undo2 className="w-3 h-3" /> Desconsiderado
       </span>
     );
   return (
@@ -95,6 +112,32 @@ export default function FluxoCancelamento() {
       refetch();
     } catch {
       toast({ title: "Erro", description: "Falha ao enviar e-mail.", variant: "destructive" });
+    }
+  };
+
+  const handleExcluir = async (id: number) => {
+    if (!confirm("Tem certeza que deseja excluir permanentemente este registro? Isso limpará a duplicidade.")) return;
+    try {
+      const res = await fetch(`${BASE}api/cancellations/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Erro ao excluir");
+      toast({ title: "Excluído", description: "Registro removido com sucesso." });
+      refetch();
+    } catch {
+      toast({ title: "Erro", description: "Falha ao excluir registro.", variant: "destructive" });
+    }
+  };
+
+  const handleDesconsiderar = async (id: number) => {
+    if (!confirm("Marcar este cancelamento como DESCONSIDERADO?")) return;
+    try {
+      await updateStatus.mutateAsync({ id, status: "DESCONSIDERADO" });
+      toast({ title: "Atualizado", description: "Status alterado para Desconsiderado." });
+      refetch();
+    } catch {
+      toast({ title: "Erro", description: "Falha ao atualizar.", variant: "destructive" });
     }
   };
 
@@ -204,32 +247,54 @@ export default function FluxoCancelamento() {
                         )}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <div className="flex gap-1.5 justify-end">
-                          {item.status === "PENDENTE" && (
+                        <div className="flex gap-2 justify-end items-center">
+                          {/* Botão Desconsiderar */}
+                          {item.status !== "RESOLVIDO" && item.status !== "DESCONSIDERADO" && (
                             <Button
-                              size="sm"
-                              onClick={() => handleStatus(item.id, "EM ANDAMENTO")}
-                              disabled={updateStatus.isPending}
-                              className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDesconsiderar(item.id)}
+                              className="h-8 w-8 text-orange-400 hover:text-orange-500 hover:bg-orange-500/10"
+                              title="Desconsiderar"
                             >
-                              Em Andamento
+                              <Undo2 className="w-4 h-4" />
                             </Button>
                           )}
-                          {item.status !== "RESOLVIDO" && (
-                            <Button
-                              size="sm"
-                              onClick={() => handleStatus(item.id, "RESOLVIDO")}
-                              disabled={updateStatus.isPending}
-                              className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
-                            >
-                              Resolver
-                            </Button>
-                          )}
-                          {item.status === "RESOLVIDO" && (
-                            <span className="text-xs text-muted-foreground italic px-2">
-                              {item.solutionDate ? formatDate(item.solutionDate) : "—"}
-                            </span>
-                          )}
+
+                          {/* Botões de Fluxo */}
+                          <div className="flex gap-1.5">
+                            {item.status === "PENDENTE" && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatus(item.id, "EM ANDAMENTO")}
+                                disabled={updateStatus.isPending}
+                                className="h-7 text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                Andamento
+                              </Button>
+                            )}
+                            {item.status !== "RESOLVIDO" && item.status !== "DESCONSIDERADO" && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleStatus(item.id, "RESOLVIDO")}
+                                disabled={updateStatus.isPending}
+                                className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                              >
+                                Resolver
+                              </Button>
+                            )}
+                          </div>
+
+                          {/* Botão Excluir */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleExcluir(item.id)}
+                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                            title="Excluir"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>

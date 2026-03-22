@@ -4,8 +4,8 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "@workspace/db";
-import { logger } from "./lib/logger";
-import routes from "./routes/index";
+import { logger } from "./lib/logger.js";
+import routes from "./routes/index.js";
 
 const app: Express = express();
 const PostgresStore = connectPgSimple(session);

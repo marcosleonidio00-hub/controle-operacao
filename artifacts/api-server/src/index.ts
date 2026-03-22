@@ -1,5 +1,5 @@
-      import app from "./app";
-      import { logger } from "./lib/logger";
+import app from './app.js';
+import { logger } from "./lib/logger.js";
       import { pool } from "@workspace/db";
       import bcrypt from "bcryptjs";
 

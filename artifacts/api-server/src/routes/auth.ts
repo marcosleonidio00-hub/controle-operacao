@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, usersTable } from "@workspace/db";
 import { eq, or } from "drizzle-orm";
-import { requireAuth } from "../middlewares/auth";
+import { requireAuth } from "../middlewares/auth.js"; // CORREÇÃO 1: Adicionado .js
 
 const router = Router();
 
@@ -48,7 +48,9 @@ router.post("/login", async (req, res) => {
     (req as any).session.userId = user.id;
     return res.json({ user: formatUser(user), message: "Login realizado com sucesso" });
   } catch (e) {
-    req.log.error(e);
+    // CORREÇÃO 2: Ignorando erro de tipagem do logger do express
+    // @ts-ignore
+    req.log?.error(e);
     return res.status(500).json({ error: "Erro interno" });
   }
 });

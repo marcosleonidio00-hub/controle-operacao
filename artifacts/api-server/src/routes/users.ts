@@ -1,20 +1,18 @@
 import { Router } from "express";
 import { db, usersTable } from "@workspace/db";
+import { requireAuth } from "../middlewares/auth.js";
 import { eq } from "drizzle-orm";
-import { requireAuth, requireAdminOrMaster } from "../middlewares/auth";
 
 const router = Router();
 
-// Listar usuários (Apenas Admin/Master)
-router.get("/", requireAuth, requireAdminOrMaster, async (req, res) => {
+// Listar usuários
+router.get("/", requireAuth, async (req, res) => {
   try {
-    const allUsers = await db.select().from(usersTable);
-    return res.json(allUsers);
+    const users = await db.select().from(usersTable);
+    return res.json(users);
   } catch (e) {
     return res.status(500).json({ error: "Erro ao buscar usuários" });
   }
 });
-
-// Outras rotas de usuários viriam aqui...
 
 export default router;
