@@ -61,3 +61,5 @@ app.get("*", (req, res) => {
     }
   }
 });
+// No final do arquivo app.ts
+export { app };
