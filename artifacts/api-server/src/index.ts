@@ -134,7 +134,7 @@
         const rawPort = process.env["PORT"];
         if (!rawPort) { logger.warn("PORT não definida, usando 3000"); }
 
-        const port = Number(rawPort || 3000);
+        const port = Number(process.env.PORT || rawPort || 10000);
         if (Number.isNaN(port) || port <= 0) throw new Error("Invalid PORT value: " + rawPort);
 
         await ensureSchema();
